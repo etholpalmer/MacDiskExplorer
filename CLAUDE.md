@@ -20,6 +20,8 @@ Two non-obvious rules learned the hard way:
 
 - **`df` is authoritative for mounted-volume usage, not `diskutil`.** For APFS volumes `diskutil info` reports container-wide free space, which once made every volume read as 100% full and produced 20 false criticals. `Correlate.enrichVolumesWithDf` overrides usage from `df`; unmounted volumes correctly report no capacity rather than a fabricated one.
 - **The entry point is guarded** on the invoked script name so `MacDiskExplorer.Tests.fsx` can `#load` the module without triggering a full system collection.
+- **`system_profiler` data-type names are not stable across macOS versions.** macOS 26 replaced `SPUSBDataType` with `SPUSBHostDataType` and renamed every property; the old name returns an empty result rather than erroring, so devices vanish silently. `Collectors.collectUsb` queries the current type first, falls back to the legacy one, and accepts either key vocabulary via `strAny`. Apply the same pattern before trusting any new `SP*DataType`.
+- **Link speed belongs to the physical disk only.** A synthesized APFS container reports the same `MediaName` as its physical store, so `Correlate.attachLinkSpeed` skips disks where `VirtualOrPhysical` is `Virtual` to avoid reporting one connection twice.
 
 ## Design Context
 

@@ -77,7 +77,7 @@ Self-contained: no CDN, no external stylesheet, no fonts to fetch. Open the file
 |---|---|
 | `diskutil list -plist` | Whole disks, partitions, APFS volumes |
 | `diskutil info -plist <dev>` | Media name, bus protocol, SMART, internal/external, SSD |
-| `system_profiler SPUSBDataType -json` | USB topology and link speeds |
+| `system_profiler SPUSBHostDataType -json` | USB topology and negotiated link speed (falls back to the legacy `SPUSBDataType` on older macOS) |
 | `system_profiler SPThunderboltDataType -json` | Thunderbolt devices |
 | `system_profiler SPNVMeDataType -json` | NVMe model, capacity, TRIM |
 | `df -k` | Authoritative live capacity for mounted volumes |
@@ -97,6 +97,10 @@ Three decisions that are easy to get wrong, and that the tests pin down:
 **Totals are only computed where the figures are additive.** Whole-disk capacities are distinct devices and sum correctly. Volume and `df` rows do not: every APFS volume in a container reports that container's size, so summing them multiplies one disk by its volume count. Those columns get worst-offender and at-risk counts instead of a fabricated total.
 
 **Pseudo-filesystems are excluded from verdicts but still listed.** `devfs` is 100% full by definition and Time Machine snapshot mounts report snapshot capacity. Counting them inflated "at risk" from 4 to 7 — a report that cries wolf gets ignored.
+
+**Link speed attaches to the physical disk, not its synthesized container.** An APFS container disk reports the same `MediaName` as the physical store beneath it, so matching on name alone tags both and reports one connection twice. `diskutil`'s `VirtualOrPhysical` field settles it.
+
+One version note worth knowing: macOS 26 replaced `SPUSBDataType` with `SPUSBHostDataType` and renamed every property (`speed` became `USBDeviceKeyLinkSpeed`). Querying the old name returns an empty result rather than an error, so USB devices silently vanish from the report. The collector queries the current type first, falls back to the legacy one, and accepts either key vocabulary.
 
 The guiding rule, from [PRODUCT.md](PRODUCT.md): where a figure is unknown or untrustworthy, show its absence rather than a confident wrong number.
 

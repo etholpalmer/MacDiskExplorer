@@ -258,6 +258,13 @@ module Model =
           BusProtocol: string option
           Removable: bool option
           SmartStatus: string option
+          /// Negotiated link speed of the connection, e.g. "10 Gb/s".
+          /// Correlated from the USB/Thunderbolt topology; None when the bus
+          /// does not report one.
+          LinkSpeed: string option
+          /// True for synthesized APFS container disks, which have no
+          /// connection of their own; they share their physical store's.
+          Virtual: bool option
           Volumes: Volume list }
 
     type UsbDevice =
@@ -489,6 +496,8 @@ module Collectors =
                             |> Option.orElse (getBool "Removable")
                             |> Option.orElse (getBool "RemovableMediaOrExternalDevice")
                           SmartStatus = getStr "SMARTStatus"
+                          LinkSpeed = None   // filled by Correlate.attachLinkSpeed
+                          Virtual = getStr "VirtualOrPhysical" |> Option.map (fun v -> v = "Virtual")
                           Volumes = volumes })
 
     // ---- system_profiler (JSON) generic recursive flattener ----
@@ -508,20 +517,38 @@ module Collectors =
             | None -> []
         el :: children
 
+    /// First property name that yields a value, so one extractor serves
+    /// several macOS key vocabularies.
+    let private strAny (names: string list) (el: JsonElement) =
+        names |> List.tryPick (fun n -> Jsonp.strProp n el)
+
+    /// First data type that returns anything.
+    let rec private firstPopulated (dataTypes: string list) : JsonElement list =
+        match dataTypes with
+        | [] -> []
+        | t :: rest ->
+            match spItems t with
+            | [] -> firstPopulated rest
+            | items -> items
+
+    /// macOS 26 replaced SPUSBDataType with SPUSBHostDataType and renamed
+    /// every property (`speed` -> `USBDeviceKeyLinkSpeed`, and so on). Query
+    /// the current type first and fall back to the legacy one, accepting
+    /// either vocabulary, so the collector works across macOS versions.
     let collectUsb () : UsbDevice list =
-        spItems "SPUSBDataType"
+        firstPopulated [ "SPUSBHostDataType"; "SPUSBDataType" ]
         |> List.collect walk
         |> List.choose (fun el ->
             match Jsonp.strProp "_name" el with
             | Some name when name <> "USB" ->
                 Some
                     { Name = name
-                      Manufacturer = Jsonp.strProp "manufacturer" el
-                      Speed = Jsonp.strProp "speed" el
-                      SerialNumber = Jsonp.strProp "serial_num" el
-                      Vendor = Jsonp.strProp "vendor_id" el }
+                      Manufacturer = strAny [ "USBDeviceKeyVendorName"; "manufacturer" ] el
+                      Speed = strAny [ "USBDeviceKeyLinkSpeed"; "speed" ] el
+                      SerialNumber = strAny [ "USBDeviceKeySerialNumber"; "serial_num" ] el
+                      Vendor = strAny [ "USBDeviceKeyVendorID"; "vendor_id" ] el }
             | _ -> None)
-        // Only physical devices tend to expose a speed or serial.
+        // Bus/hub nodes carry none of these; only real devices do.
         |> List.filter (fun d -> d.Speed.IsSome || d.SerialNumber.IsSome || d.Manufacturer.IsSome)
 
     let collectThunderbolt () : ThunderboltDevice list =
@@ -633,6 +660,32 @@ module Collectors =
 module Correlate =
     open Model
 
+    /// Attach the negotiated link speed to each disk by matching diskutil's
+    /// MediaName against the USB topology's device name ("PSSD T7").
+    ///
+    /// Synthesized APFS container disks are skipped: they report the same
+    /// MediaName as the physical store they sit on, so matching them too
+    /// would report one connection twice.
+    let attachLinkSpeed (usb: UsbDevice list) (disks: PhysicalDisk list) : PhysicalDisk list =
+        let speedByName =
+            usb
+            |> List.choose (fun u ->
+                match u.Speed with
+                | Some s when u.Name.Trim().Length > 0 -> Some(u.Name.Trim(), s)
+                | _ -> None)
+            |> List.distinctBy fst
+            |> Map.ofList
+
+        if speedByName.IsEmpty then disks
+        else
+            disks
+            |> List.map (fun d ->
+                if d.Virtual = Some true then d
+                else
+                    match d.MediaName |> Option.bind (fun m -> Map.tryFind (m.Trim()) speedByName) with
+                    | Some speed -> { d with LinkSpeed = Some speed }
+                    | None -> d)
+
     /// Fill in volume usage (used/avail/percent) from df where diskutil
     /// did not provide it, matched by mount point.
     let enrichVolumesWithDf (usage: FsUsage list) (disks: PhysicalDisk list) : PhysicalDisk list =
@@ -743,14 +796,16 @@ module Engine =
     let collect () : Inventory =
         let computer = Collectors.collectComputer ()
         let fsUsage = Collectors.collectFsUsage ()
+        let usb = Collectors.collectUsb ()
         let disks =
             Collectors.collectDisks ()
             |> Correlate.enrichVolumesWithDf fsUsage
+            |> Correlate.attachLinkSpeed usb
         let baseInv =
             { Timestamp = DateTime.Now
               Computer = computer
               Disks = disks
-              Usb = Collectors.collectUsb ()
+              Usb = usb
               Thunderbolt = Collectors.collectThunderbolt ()
               Nvme = Collectors.collectNvme ()
               NetworkMounts = Collectors.collectNetworkMounts ()
@@ -965,10 +1020,12 @@ module Render =
                       Fmt.str d.MediaName
                       Fmt.bytes d.SizeBytes
                       sprintf "%s %s" icon kind
+                      Fmt.str d.LinkSpeed
                       (if d.Internal = Some true then "Internal" else "External")
                       (if d.SolidState = Some true then "SSD" else "HDD")
                       Fmt.str d.SmartStatus ])
-            sb.Append(table [ "Device"; "Media"; "Size"; "Bus"; "Location"; "Type"; "SMART" ] diskRows) |> ignore
+            sb.Append(table [ "Device"; "Media"; "Size"; "Bus"; "Link"; "Location"; "Type"; "SMART" ] diskRows)
+            |> ignore
 
             // Volumes
             heading "Volumes"
@@ -1053,6 +1110,8 @@ module Render =
                   "internal", jBoolO d.Internal
                   "solidState", jBoolO d.SolidState
                   "busProtocol", jStrO d.BusProtocol
+                  "linkSpeed", jStrO d.LinkSpeed
+                  "virtual", jBoolO d.Virtual
                   "removable", jBoolO d.Removable
                   "smartStatus", jStrO d.SmartStatus
                   "volumes", JArr(d.Volumes |> List.map volume) ]
@@ -1149,7 +1208,7 @@ module Render =
 
         let render (inv: Inventory) : string =
             let sb = StringBuilder()
-            sb.Append "DiskDevice,MediaName,BusProtocol,Internal,SolidState,SmartStatus,VolumeDevice,VolumeName,MountPoint,FileSystem,SizeBytes,UsedBytes,AvailBytes,CapacityPercent,ReadOnly\n"
+            sb.Append "DiskDevice,MediaName,BusProtocol,LinkSpeed,Internal,SolidState,SmartStatus,VolumeDevice,VolumeName,MountPoint,FileSystem,SizeBytes,UsedBytes,AvailBytes,CapacityPercent,ReadOnly\n"
             |> ignore
             let o (x: string option) = Fmt.str x
             let ob (x: bool option) = Fmt.boolYN x
@@ -1159,16 +1218,17 @@ module Render =
                 if d.Volumes.IsEmpty then
                     sb.Append(
                         String.Join(",",
-                            [ q d.DeviceId; q (o d.MediaName); q (o d.BusProtocol); ob d.Internal
-                              ob d.SolidState; q (o d.SmartStatus); ""; ""; ""; ""; ""; ""; ""; ""; "" ]))
+                            [ q d.DeviceId; q (o d.MediaName); q (o d.BusProtocol); q (o d.LinkSpeed)
+                              ob d.Internal; ob d.SolidState; q (o d.SmartStatus)
+                              ""; ""; ""; ""; ""; ""; ""; ""; "" ]))
                     |> ignore
                     sb.Append '\n' |> ignore
                 else
                     for v in d.Volumes do
                         sb.Append(
                             String.Join(",",
-                                [ q d.DeviceId; q (o d.MediaName); q (o d.BusProtocol); ob d.Internal
-                                  ob d.SolidState; q (o d.SmartStatus)
+                                [ q d.DeviceId; q (o d.MediaName); q (o d.BusProtocol); q (o d.LinkSpeed)
+                                  ob d.Internal; ob d.SolidState; q (o d.SmartStatus)
                                   q v.DeviceId; q (o v.Name); q (o v.MountPoint); q (o v.FileSystem)
                                   oi v.SizeBytes; oi v.UsedBytes; oi v.AvailBytes; op v.CapacityPercent
                                   (if v.ReadOnly then "Yes" else "No") ]))
@@ -1211,12 +1271,13 @@ module Render =
                     (if mdSmartBad > 0 then sprintf "🔴 %d SMART failing · " mdSmartBad else "")
                     mdIntN mdExtN (Fmt.bytes (Some(Stats.totalDiskBytes inv.Disks))))
             ln ""
-            ln "| Device | Media | Size | Bus | Location | Type | SMART |"
-            ln "|---|---|---|---|---|---|---|"
+            ln "| Device | Media | Size | Bus | Link | Location | Type | SMART |"
+            ln "|---|---|---|---|---|---|---|---|"
             for d in inv.Disks do
                 let kind, icon = Fmt.classifyBus d.BusProtocol d.Internal
-                ln (sprintf "| %s | %s | %s | %s %s | %s | %s | %s |"
+                ln (sprintf "| %s | %s | %s | %s %s | %s | %s | %s | %s |"
                         d.DeviceId (Fmt.str d.MediaName) (Fmt.bytes d.SizeBytes) icon kind
+                        (Fmt.str d.LinkSpeed)
                         (if d.Internal = Some true then "Internal" else "External")
                         (if d.SolidState = Some true then "SSD" else "HDD")
                         (Fmt.str d.SmartStatus))
@@ -1762,8 +1823,9 @@ footer{max-width:1200px;margin:0 auto;padding:1rem 1.25rem;color:var(--muted);fo
                     let locBadge =
                         if d.Internal = Some true then "<span class=\"badge int\">💽 Internal</span>"
                         else "<span class=\"badge ext\">External</span>"
-                    sprintf "<tr><td>%s</td><td>%s</td><td>%s</td><td>%s %s</td><td>%s</td><td>%s</td><td>%s</td></tr>"
+                    sprintf "<tr><td>%s</td><td>%s</td><td>%s</td><td>%s %s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>"
                         (esc d.DeviceId) (eo d.MediaName) (Fmt.bytes d.SizeBytes) bico (esc kind)
+                        (eo d.LinkSpeed)
                         locBadge (if d.SolidState = Some true then "SSD" else "HDD") (eo d.SmartStatus))
             let diskMeta =
                 [ sevChip Critical smartBad
@@ -1776,6 +1838,8 @@ footer{max-width:1200px;margin:0 auto;padding:1rem 1.25rem;color:var(--muted);fo
                   // Whole-disk sizes are additive, so a real total is honest here.
                   "Size", Some(sprintf "%s total" (Fmt.bytes (Some totalDisk)))
                   "Bus", None
+                  "Link", (let known = inv.Disks |> List.filter (fun d -> d.LinkSpeed.IsSome) |> List.length
+                           if known > 0 then Some(sprintf "%d reported" known) else None)
                   "Location", Some(sprintf "%d int · %d ext" intN extN)
                   "Type", None
                   "SMART", (if smartBad > 0 then Some(sprintf "%d failing" smartBad) else Some "all verified") ]

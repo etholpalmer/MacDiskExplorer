@@ -42,7 +42,12 @@ let mkVolume id mount pct ro : Volume =
 let mkDisk id vols : PhysicalDisk =
     { DeviceId = id; MediaName = Some "Media"; SizeBytes = Some 1000L
       Internal = Some true; SolidState = Some true; BusProtocol = Some "PCI-Express"
-      Removable = Some false; SmartStatus = Some "Verified"; Volumes = vols }
+      Removable = Some false; SmartStatus = Some "Verified"
+      LinkSpeed = None; Virtual = Some false; Volumes = vols }
+
+let mkUsb name speed : UsbDevice =
+    { Name = name; Manufacturer = Some "ACME"; Speed = speed
+      SerialNumber = Some "SN123"; Vendor = Some "0x04e8" }
 
 let mkInv disks : Inventory =
     { Timestamp = DateTime(2026, 1, 1)
@@ -140,6 +145,40 @@ let enriched = Correlate.enrichVolumesWithDf usage [ disk ]
 let ev = enriched.Head.Volumes.Head
 checkEq "df overrides capacity" (Some 42) ev.CapacityPercent
 checkEq "df fills used" (Some 840L) ev.UsedBytes
+
+// ===================================================================
+printfn "Correlate.attachLinkSpeed"
+let usbDevices = [ mkUsb "PSSD T7" (Some "10 Gb/s"); mkUsb "Old Stick" (Some "480 Mb/s") ]
+// disk6 is the physical device; disk7 is the synthesized APFS container that
+// sits on it and reports the very same MediaName.
+let physical = { mkDisk "disk6" [] with MediaName = Some "PSSD T7"; Virtual = Some false }
+let synthesized = { mkDisk "disk7" [] with MediaName = Some "PSSD T7"; Virtual = Some true }
+let unrelated = { mkDisk "disk0" [] with MediaName = Some "APPLE SSD AP0512Z" }
+let linked = Correlate.attachLinkSpeed usbDevices [ physical; synthesized; unrelated ]
+let speedOf id = linked |> List.find (fun d -> d.DeviceId = id) |> fun d -> d.LinkSpeed
+checkEq "physical disk gets its negotiated link speed" (Some "10 Gb/s") (speedOf "disk6")
+checkEq "synthesized APFS disk does not double-report the connection" None (speedOf "disk7")
+checkEq "unmatched disk is left alone" None (speedOf "disk0")
+checkEq "no disks are added or dropped" 3 linked.Length
+checkEq "an empty USB topology changes nothing"
+    None
+    (Correlate.attachLinkSpeed [] [ physical ] |> List.head |> fun d -> d.LinkSpeed)
+// Media names are matched after trimming, since diskutil pads some values.
+checkEq "media name is matched after trimming"
+    (Some "10 Gb/s")
+    (Correlate.attachLinkSpeed usbDevices [ { physical with MediaName = Some "  PSSD T7  " } ]
+     |> List.head |> fun d -> d.LinkSpeed)
+// A USB device with no reported speed must not blank out or match anything.
+checkEq "a device reporting no speed contributes nothing"
+    None
+    (Correlate.attachLinkSpeed [ mkUsb "PSSD T7" None ] [ physical ] |> List.head |> fun d -> d.LinkSpeed)
+
+printfn "Warnings.isSlowUsbSpeed — both macOS speed vocabularies"
+check "modern 10 Gb/s is not slow" (not (Warnings.isSlowUsbSpeed "10 Gb/s"))
+check "modern 5 Gb/s is not slow" (not (Warnings.isSlowUsbSpeed "5 Gb/s"))
+check "USB 2.0 480 Mb/s is slow (new format)" (Warnings.isSlowUsbSpeed "480 Mb/s")
+check "USB 2.0 is slow (legacy 'Up to' format)" (Warnings.isSlowUsbSpeed "Up to 480 Mb/s")
+check "USB 1.1 full speed is slow" (Warnings.isSlowUsbSpeed "Up to 12 Mb/s")
 
 // ===================================================================
 printfn "Warnings.derive"
