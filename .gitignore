@@ -1,0 +1,22 @@
+# Generated reports.
+#
+# These are machine-specific: they contain the host name, volume names, mount
+# paths, and device identifiers of whatever Mac the tool last ran on. They are
+# regenerable at any time with:
+#
+#     dotnet fsi MacDiskExplorer.fsx --all
+#
+# Latest, unstamped copies in the output directory:
+disk-report.html
+inventory.json
+disks.csv
+report.md
+
+# Timestamped archive of previous runs (capped at 50 per report type):
+history/
+
+# macOS
+.DS_Store
+
+# Local agent/editor settings (machine-specific, not shared)
+.claude/settings.local.json

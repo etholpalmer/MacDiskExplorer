@@ -1,0 +1,233 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-19T00:00:00Z",
+  "title": "Design System: MacDiskExplorer",
+  "extensions": {
+    "colorMeta": {
+      "accent": {
+        "role": "primary",
+        "displayName": "Signal Blue",
+        "canonical": "oklch(54.6% 0.215 262.9)",
+        "tonalRamp": [
+          "oklch(20% 0.09 262.9)",
+          "oklch(30% 0.13 262.9)",
+          "oklch(40% 0.17 262.9)",
+          "oklch(54.6% 0.215 262.9)",
+          "oklch(65% 0.17 262.9)",
+          "oklch(76% 0.12 262.9)",
+          "oklch(87% 0.06 262.9)",
+          "oklch(96% 0.02 262.9)"
+        ]
+      },
+      "status-ok": {
+        "role": "secondary",
+        "displayName": "Verdict Green",
+        "canonical": "oklch(58.5% 0.16 145.5)",
+        "tonalRamp": [
+          "oklch(20% 0.06 145.5)",
+          "oklch(30% 0.09 145.5)",
+          "oklch(42% 0.13 145.5)",
+          "oklch(58.5% 0.16 145.5)",
+          "oklch(68% 0.14 145.5)",
+          "oklch(78% 0.10 145.5)",
+          "oklch(88% 0.06 145.5)",
+          "oklch(96% 0.02 145.5)"
+        ]
+      },
+      "status-warn": {
+        "role": "secondary",
+        "displayName": "Verdict Amber",
+        "canonical": "oklch(64.5% 0.163 58.3)",
+        "tonalRamp": [
+          "oklch(22% 0.06 58.3)",
+          "oklch(32% 0.09 58.3)",
+          "oklch(46% 0.13 58.3)",
+          "oklch(64.5% 0.163 58.3)",
+          "oklch(74% 0.14 58.3)",
+          "oklch(83% 0.10 58.3)",
+          "oklch(91% 0.06 58.3)",
+          "oklch(97% 0.02 58.3)"
+        ]
+      },
+      "status-crit": {
+        "role": "secondary",
+        "displayName": "Verdict Red",
+        "canonical": "oklch(57.7% 0.215 27.3)",
+        "tonalRamp": [
+          "oklch(20% 0.09 27.3)",
+          "oklch(30% 0.13 27.3)",
+          "oklch(42% 0.17 27.3)",
+          "oklch(57.7% 0.215 27.3)",
+          "oklch(68% 0.17 27.3)",
+          "oklch(78% 0.12 27.3)",
+          "oklch(88% 0.07 27.3)",
+          "oklch(96% 0.02 27.3)"
+        ]
+      },
+      "bg": {
+        "role": "neutral",
+        "displayName": "Cool Field",
+        "canonical": "oklch(97.2% 0.003 247.9)",
+        "tonalRamp": [
+          "oklch(18% 0.004 247.9)",
+          "oklch(28% 0.004 247.9)",
+          "oklch(40% 0.004 247.9)",
+          "oklch(55% 0.004 247.9)",
+          "oklch(70% 0.003 247.9)",
+          "oklch(85% 0.003 247.9)",
+          "oklch(92% 0.003 247.9)",
+          "oklch(97.2% 0.003 247.9)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(24.6% 0.014 258.4)",
+        "tonalRamp": [
+          "oklch(15% 0.014 258.4)",
+          "oklch(24.6% 0.014 258.4)",
+          "oklch(35% 0.014 258.4)",
+          "oklch(47% 0.013 258.4)",
+          "oklch(60% 0.012 258.4)",
+          "oklch(74% 0.010 258.4)",
+          "oklch(87% 0.006 258.4)",
+          "oklch(96% 0.003 258.4)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "oklch(91.4% 0.005 247.9)",
+        "tonalRamp": [
+          "oklch(20% 0.006 247.9)",
+          "oklch(32% 0.006 247.9)",
+          "oklch(45% 0.006 247.9)",
+          "oklch(58% 0.006 247.9)",
+          "oklch(71% 0.006 247.9)",
+          "oklch(82% 0.005 247.9)",
+          "oklch(91.4% 0.005 247.9)",
+          "oklch(97% 0.003 247.9)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "metric": { "displayName": "Metric", "purpose": "Summary card counts. Largest type in the system; must belong to the most consequential fact." },
+      "headline": { "displayName": "Headline", "purpose": "Sticky-header host name and disclosure summary titles." },
+      "body": { "displayName": "Body", "purpose": "Prose and warning messages. Caps at 65-75ch." },
+      "data": { "displayName": "Data", "purpose": "All table cells and headers. The workhorse size." },
+      "label": { "displayName": "Label", "purpose": "Uppercase card captions and footer." },
+      "micro": { "displayName": "Micro", "purpose": "Capacity bar percentages and badges." }
+    },
+    "shadows": [
+      { "name": "ambient-panel", "value": "0 1px 3px rgba(0,0,0,.08)", "purpose": "The single resting shadow on cards, panels, and the sticky header. Separates from ground by a hair; never ranks importance." },
+      { "name": "ambient-panel-dark", "value": "0 1px 3px rgba(0,0,0,.4)", "purpose": "Dark-theme counterpart of ambient-panel." },
+      { "name": "focus-ring", "value": "outline: 2px solid var(--accent); outline-offset: 2px", "purpose": "Applied via :focus-visible to every interactive element. Non-negotiable." }
+    ],
+    "motion": [
+      { "name": "disclosure-rotate", "value": "transform .15s", "purpose": "The summary caret rotating 90 degrees on details[open]." },
+      { "name": "state-standard", "value": "150-250ms", "purpose": "Ceiling for any state transition. Users are in a task; no choreography." }
+    ],
+    "breakpoints": [
+      { "name": "content-max", "value": "1200px" },
+      { "name": "card-min", "value": "150px" },
+      { "name": "sticky-offset", "value": "56px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Disclosure Panel",
+      "kind": "custom",
+      "refersTo": "panel-section",
+      "description": "The structural unit of the report. A real <details>/<summary> so it is keyboard-operable and degrades to expanded without JS.",
+      "html": "<details class=\"ds-panel\" open><summary class=\"ds-panel-summary\">⚠️ Warnings <span class=\"ds-muted\">(5)</span></summary><div class=\"ds-panel-body\">Panel content</div></details>",
+      "css": ".ds-panel { background: var(--panel, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); margin-bottom: 1.1rem; } .ds-panel-summary { cursor: pointer; padding: .85rem 1.1rem; font-weight: 600; list-style: none; display: flex; align-items: center; gap: .5rem; user-select: none; border-radius: 12px; } .ds-panel-summary::-webkit-details-marker { display: none; } .ds-panel-summary::before { content: '▸'; color: var(--muted, #6b7280); transition: transform .15s; } .ds-panel[open] .ds-panel-summary::before { transform: rotate(90deg); } .ds-panel-summary:focus-visible { outline: 2px solid var(--accent, #2563eb); outline-offset: 2px; } .ds-muted { color: var(--muted, #6b7280); } .ds-panel-body { padding: 0 1.1rem 1rem; }"
+    },
+    {
+      "name": "Capacity Bar",
+      "kind": "custom",
+      "refersTo": "capacity-bar",
+      "description": "Status-colored fill with the percentage centered inside. The number is what satisfies the Never-Hue-Alone Rule.",
+      "html": "<div class=\"ds-bar\"><div class=\"ds-bar-fill ds-crit\" style=\"width:99%\"></div><span class=\"ds-bar-label\">99%</span></div>",
+      "css": ".ds-bar { position: relative; background: var(--bg, #f6f7f9); border: 1px solid var(--border, #e5e7eb); border-radius: 6px; height: 18px; min-width: 120px; overflow: hidden; } .ds-bar-fill { height: 100%; border-radius: 5px 0 0 5px; } .ds-bar-fill.ds-ok { background: #16a34a; } .ds-bar-fill.ds-warn { background: #d97706; } .ds-bar-fill.ds-crit { background: #dc2626; } .ds-bar-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: .72rem; font-weight: 600; mix-blend-mode: difference; color: #fff; }"
+    },
+    {
+      "name": "Sort Header Button",
+      "kind": "button",
+      "refersTo": "sort-button",
+      "description": "A real button filling the header cell so sorting is keyboard-operable; the th keeps scope and aria-sort.",
+      "html": "<table class=\"ds-table\"><thead><tr><th scope=\"col\" aria-sort=\"ascending\" class=\"ds-sort-asc\"><button type=\"button\" class=\"ds-sortbtn\">Device</button></th></tr></thead></table>",
+      "css": ".ds-table { border-collapse: collapse; font-size: .85rem; } .ds-table th { background: var(--panel, #fff); text-align: left; border-bottom: 2px solid var(--border, #e5e7eb); white-space: nowrap; } .ds-sortbtn { all: unset; box-sizing: border-box; display: block; width: 100%; cursor: pointer; padding: .6rem .8rem; font: inherit; font-weight: 600; color: inherit; } .ds-sortbtn:hover { color: var(--accent, #2563eb); } .ds-sortbtn:focus-visible { outline: 2px solid var(--accent, #2563eb); outline-offset: 2px; border-radius: 6px; } .ds-sort-asc::after { content: ' ▲'; font-size: .7rem; color: var(--muted, #6b7280); }"
+    },
+    {
+      "name": "Summary Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Metric tile in the summary grid. Known weak point: all eight render at equal weight regardless of consequence.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-ico\">🔴</div><div class=\"ds-card-num\">3</div><div class=\"ds-card-lbl\">Critical</div></div>",
+      "css": ".ds-card { background: var(--panel, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 12px; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,.08); } .ds-card-ico { font-size: 1.4rem; } .ds-card-num { font-size: 1.9rem; font-weight: 700; line-height: 1; } .ds-card-lbl { color: var(--muted, #6b7280); font-size: .78rem; text-transform: uppercase; letter-spacing: .03em; margin-top: .25rem; }"
+    },
+    {
+      "name": "Search Input",
+      "kind": "input",
+      "refersTo": "input-search",
+      "description": "Header filter. Filters every table row on the page simultaneously.",
+      "html": "<input class=\"ds-search\" type=\"search\" placeholder=\"🔍 Filter all tables…\">",
+      "css": ".ds-search { padding: .5rem .75rem; border: 1px solid var(--border, #e5e7eb); border-radius: 8px; background: var(--bg, #f6f7f9); color: var(--ink, #1c2128); min-width: 220px; font-size: .85rem; } .ds-search:focus-visible { outline: 2px solid var(--accent, #2563eb); outline-offset: 2px; }"
+    },
+    {
+      "name": "Theme Toggle",
+      "kind": "button",
+      "refersTo": "button-theme",
+      "description": "Chrome control in the sticky header. Persists choice to localStorage; defaults to OS preference.",
+      "html": "<button type=\"button\" class=\"ds-btn\">🌓 Theme</button>",
+      "css": ".ds-btn { cursor: pointer; border: 1px solid var(--border, #e5e7eb); background: var(--bg, #f6f7f9); color: var(--ink, #1c2128); padding: .5rem .8rem; border-radius: 8px; font-size: .85rem; } .ds-btn:hover { border-color: var(--accent, #2563eb); } .ds-btn:focus-visible { outline: 2px solid var(--accent, #2563eb); outline-offset: 2px; }"
+    },
+    {
+      "name": "Device Badge",
+      "kind": "chip",
+      "refersTo": "badge-internal",
+      "description": "Marks a disk as internal or external in the disks table.",
+      "html": "<span class=\"ds-badge ds-badge-int\">💽 Internal</span> <span class=\"ds-badge ds-badge-ext\">External</span>",
+      "css": ".ds-badge { display: inline-block; padding: .12rem .5rem; border-radius: 999px; font-size: .72rem; font-weight: 600; } .ds-badge-int { background: var(--accent-soft, #eff6ff); color: var(--accent, #2563eb); } .ds-badge-ext { background: rgba(217,119,6,.15); color: #d97706; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Briefing",
+    "overview": "This is a document prepared for someone who has to act. A sysadmin opens it on a Mac they did not configure, and the system's entire job is to put the finding in front of them before the inventory. Everything is ordered by consequence: what is failing, then what is at risk, then what merely exists. Underneath that editorial ordering, the material is instrument-grade. Tables are the hero. Density is not a compromise here, it is the correct answer for a reader comparing twenty-seven volumes across twelve disks. The briefing decides the order and weight of the sections, the instrument decides the texture inside them. What this system rejects is enterprise monitoring clutter, in the Grafana and Nagios mold, where density arrives without hierarchy and the operator is left doing the ranking the tool should have done.",
+    "keyCharacteristics": [
+      "Verdict first: warnings outrank inventory in both position and weight",
+      "Instrument density inside panels, editorial hierarchy between them",
+      "Flat at rest; depth is a response to state, never a decoration",
+      "Status is never carried by hue alone",
+      "Dual-theme native, with the dark ramp as a first-class citizen rather than an inversion"
+    ],
+    "rules": [
+      { "name": "The Verdict Rule", "body": "Green, amber, and red are reserved for health and severity. They may never be used for branding, category coding, chart series, or emphasis.", "section": "colors" },
+      { "name": "The Never-Hue-Alone Rule", "body": "Every status color is accompanied by a redundant non-color signal: a glyph, a word, or a number. A monochrome print of this page must lose nothing.", "section": "colors" },
+      { "name": "The Provisional Palette Rule", "body": "The current accent and status ramp are close to GitHub's stock defaults. They are recorded as the honest current state, not a defended choice, and are the system's known weakest point.", "section": "colors" },
+      { "name": "The Fixed-Scale Rule", "body": "Sizes are a fixed rem scale, never clamp(). Responsiveness here is structural, never typographic.", "section": "typography" },
+      { "name": "The Consequence-Weight Rule", "body": "The largest type on screen must belong to the most consequential fact. Today a 'USB 0' card renders at the same 1.9rem as 'Critical 3'.", "section": "typography" },
+      { "name": "The State-Only Depth Rule", "body": "At rest, everything is flat. Shadow, outline, and background shift are reactions to hover, focus, or expansion.", "section": "elevation" },
+      { "name": "The Hairline-First Rule", "body": "Structure is a 1px border before it is anything else. The shadow is the last tool reached for.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do lead with the verdict. Warnings render above the inventory and stay above it.",
+      "Do pair every status color with a glyph, word, or number.",
+      "Do use a real <details>/<summary> for any collapsible region, and a real <button> for any activatable control.",
+      "Do keep body text at or above 4.5:1 against its surface, and large text at or above 3:1 (WCAG 2.2 AA).",
+      "Do show absence as '-' when a figure is unknown. A blank cell is correct, a fabricated 100% is a bug that already shipped here once.",
+      "Do define structure with 1px hairlines before reaching for shadow.",
+      "Do keep the type scale fixed in rem. Structural responsiveness only."
+    ],
+    "donts": [
+      "Don't build enterprise monitoring clutter, in the Grafana and Nagios mold: density without hierarchy, every panel the same visual weight, nothing prioritized.",
+      "Don't use border-left or border-right greater than 1px as a colored accent stripe. The warning list currently violates this with a 4px left stripe.",
+      "Don't ship uniform card grids of identical weight. The eight summary cards give 'USB 0' the same presence as 'Critical 3'.",
+      "Don't use gradient text, background-clip: text, or decorative glassmorphism anywhere.",
+      "Don't add a sidebar, a top nav, or a dashboard shell. The report is one document.",
+      "Don't let the status trio drift into decorative or category use.",
+      "Don't animate anything that does not communicate state. Transitions stay at 150-250ms with a prefers-reduced-motion alternative.",
+      "Don't introduce clamp() typography or a second font family without a specific, argued reason."
+    ]
+  }
+}
