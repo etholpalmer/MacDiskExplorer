@@ -1469,11 +1469,13 @@ tbody tr:hover{background:var(--accent-soft)}
 .badge.int{background:var(--accent-soft);color:var(--accent)}
 .badge.ext{background:rgba(217,119,6,.15);color:var(--warn)}
 .warnlist{list-style:none;margin:0;padding:.5rem 1.1rem 1rem}
-.warnlist li{padding:.55rem .75rem;border-radius:8px;margin-top:.5rem;border-left:4px solid var(--border);
-  background:var(--bg)}
-.warnlist li.crit{border-left-color:var(--crit)}
-.warnlist li.warn{border-left-color:var(--warn)}
-.warnlist li.info{border-left-color:var(--accent)}
+/* Full border + soft severity tint (never a side stripe). Severity is still
+   carried by the leading glyph and bold category word, not by colour alone. */
+.warnlist li{padding:.55rem .75rem;border-radius:8px;margin-top:.5rem;
+  border:1px solid var(--border);background:var(--bg)}
+.warnlist li.crit{border-color:var(--crit);background:var(--crit-soft)}
+.warnlist li.warn{border-color:var(--warn);background:var(--warn-soft)}
+.warnlist li.info{border-color:var(--border);background:var(--bg)}
 .warnlist .cat{font-weight:600;margin-right:.4rem}
 footer{max-width:1200px;margin:0 auto;padding:1rem 1.25rem;color:var(--muted);font-size:.78rem}
 </style></head><body>"
