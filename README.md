@@ -1,5 +1,7 @@
 # MacDiskExplorer
 
+[![tests](https://github.com/etholpalmer/MacDiskExplorer/actions/workflows/tests.yml/badge.svg)](https://github.com/etholpalmer/MacDiskExplorer/actions/workflows/tests.yml)
+
 A macOS storage inventory and diagnostics tool. It correlates the storage information macOS scatters across `diskutil`, `system_profiler`, `df`, and `mount` into one typed model, then emits a report that **leads with what is wrong** rather than with a device tree.
 
 A single self-contained F# script. No project file, no NuGet packages, no build step.
