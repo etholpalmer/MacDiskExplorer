@@ -144,3 +144,7 @@ The suite `#load`s the main script; an entry-point guard keeps that from trigger
 | [PRODUCT.md](PRODUCT.md) | Users, purpose, positioning, design principles, accessibility bar |
 | [DESIGN.md](DESIGN.md) | The visual system: color roles, type scale, elevation, components |
 | [CLAUDE.md](CLAUDE.md) | Orientation for AI agents working in this repo |
+
+## License
+
+MIT — see [LICENSE](LICENSE).
